@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Painel – Ambiente</title>
+  <style>
+    :root{
+      --bg:#0a0a0a;
+      --bg2:#111111;
+      --glass:rgba(255,255,255,.08);
+      --glass2:rgba(255,255,255,.12);
+      --txt:#f5f5f5;
+      --muted:#b3b3b3;
+      --gold:#d4af37;
+      --gold-2:#f1c24a;
+      --red:#ef4444;
+      --green:#16a34a;
+      --shadow: 0 14px 36px rgba(0,0,0,.5);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial;
+      color:var(--txt);
+      background:
+        radial-gradient(900px 600px at 10% -10%, #1a1a1a 0%, transparent 60%),
+        radial-gradient(900px 700px at 100% 0%, #1c1404 0%, transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      display:flex; flex-direction:column; min-height:100%;
+    }
+
+    header{
+      max-width:1120px; width:100%;
+      margin:28px auto 12px; padding:0 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:16px;
+    }
+    .title{ display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.3px; }
+    .dotbrand{ width:10px; height:10px; border-radius:50%; background:var(--gold); box-shadow:0 0 18px 4px rgba(212,175,55,.45); }
+    .badge{
+      font-size:.8rem; color:#1f1a08; background:linear-gradient(135deg, var(--gold), var(--gold-2));
+      padding:6px 12px; border-radius:999px; font-weight:800; border:1px solid #b68e2f;
+    }
+
+    .grid{
+      max-width:1120px; width:100%;
+      margin:8px auto 22px; padding:0 18px;
+      display:grid; gap:18px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+
+    .card{
+      position:relative; overflow:hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--glass2);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      padding:20px 22px;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .card:hover{ transform: translateY(-2px); }
+    .card::after{
+      content:""; position:absolute; inset:-60% -60% auto -60%; height:200px; filter: blur(40px);
+      background: conic-gradient(from 180deg at 50% 50%, rgba(212,175,55,.08), rgba(255,255,255,0) 60%);
+      pointer-events:none;
+    }
+    .card-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .label{ font-size:.95rem; color:var(--muted); letter-spacing:.2px; }
+    .value{ display:flex; align-items:baseline; gap:8px; font-size:2.6rem; font-weight:900; }
+    .unit{ font-size:1.05rem; color:var(--muted); }
+
+    .icon{
+      width:48px; height:48px; border-radius:12px;
+      background: rgba(212,175,55,.08);
+      border:1px solid rgba(212,175,55,.35);
+      display:grid; place-items:center;
+      box-shadow: inset 0 0 12px rgba(212,175,55,.08);
+    }
+    .icon svg{ width:28px; height:28px; }
+
+    /* Status pill */
+    .status{
+      display:inline-flex; align-items:center; gap:10px;
+      font-weight:800; padding:10px 14px; border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border:1px solid var(--glass2);
+      color:#eaeaea;
+    }
+    .led{ width:10px; height:10px; border-radius:50%; background:#777; box-shadow:0 0 0 0 rgba(0,0,0,0); }
+    .led.on{ background: var(--green); box-shadow:0 0 16px 2px rgba(22,163,74,.55); }
+    .led.off{ background: var(--red); box-shadow:0 0 12px 1px rgba(239,68,68,.45); }
+
+    /* --- GOAL SCENE (preto & ouro) --- */
+    .card.motion{ padding-bottom:16px; }
+    .card.motion.goal{
+      border-color: rgba(212,175,55,.8);
+      box-shadow: 0 0 0 1px rgba(212,175,55,.35), 0 18px 40px rgba(212,175,55,.18);
+    }
+    .goal-banner{
+      position:absolute; top:12px; right:-14px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-2));
+      color:#1f1602; border:1px solid #b68e2f;
+      padding:6px 12px; font-weight:900; letter-spacing:1px;
+      border-radius:999px; transform: rotate(-8deg); display:none;
+      text-shadow:0 1px 0 rgba(255,255,255,.35);
+    }
+    .card.motion.goal .goal-banner{ display:block; }
+
+    .goal-scene{
+      position:relative; height:150px; margin-top:10px;
+      border-radius:14px; overflow:hidden;
+      background:
+        linear-gradient(180deg, #0c0c0c 0 10%, #0d2a0f 10% 100%);
+      border:1px solid rgba(255,255,255,.08);
+    }
+    /* Grama com marcações (linhas levemente douradas) */
+    .grass{
+      position:absolute; inset:0;
+      background:
+        repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 4px, transparent 4px 20px),
+        repeating-linear-gradient(180deg, rgba(255,255,255,.01) 0 10px, rgba(0,0,0,.0) 10px 22px),
+        linear-gradient(180deg, #0e3b15, #0a2a0f);
+      filter: saturate(110%);
+    }
+    /* Linha do gol dourada */
+    .goal-line{
+      position:absolute; bottom:26px; left:0; right:0; height:4px;
+      background: linear-gradient(90deg, transparent 0 10%, var(--gold) 10% 90%, transparent 90% 100%);
+      box-shadow: 0 0 16px 2px rgba(212,175,55,.35);
+    }
+    /* Trave e travessão brancos */
+    .posts{
+      position:absolute; right:22px; bottom:22px; width:110px; height:84px;
+      border-left:6px solid #f7f7f7; border-top:6px solid #f7f7f7;
+      border-radius:4px 0 0 0;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,.6));
+    }
+    /* Rede – malha quadriculada com leve perspectiva e brilho dourado */
+    .net{
+      position:absolute; right:22px; bottom:22px; width:110px; height:84px; overflow:hidden; border-radius:2px 0 0 0;
+    }
+    .net::before{
+      content:""; position:absolute; inset:0;
+      background:
+        linear-gradient(transparent 12px, rgba(255,255,255,.22) 13px) 0 0/12px 12px,
+        linear-gradient(90deg, transparent 12px, rgba(255,255,255,.22) 13px) 0 0/12px 12px;
+      transform: skewY(-6deg) perspective(200px) rotateY(8deg);
+      opacity:.92;
+      box-shadow: inset 0 0 18px rgba(212,175,55,.18);
+    }
+    /* Bola com rastro */
+    .ball{
+      position:absolute; left:18px; bottom:26px;
+      width:28px; height:28px; border-radius:50%;
+      background:
+        radial-gradient(circle at 30% 30%, #fff 0 45%, #e5e7eb 46% 100%),
+        repeating-conic-gradient(#0a0a0a 0 18deg, #ffffff 18deg 36deg);
+      border:1px solid rgba(255,255,255,.7);
+      box-shadow: 0 6px 14px rgba(0,0,0,.55);
+    }
+    .ball::after{
+      content:""; position:absolute; right:100%; top:40%;
+      width:80px; height:12px; transform: translateY(-50%);
+      background: radial-gradient(40px 6px at 100% 50%, rgba(212,175,55,.6), transparent 70%);
+      opacity:0; pointer-events:none;
+    }
+    .card.motion.goal .ball{ animation: kick 1.15s cubic-bezier(.2,.8,.25,1) forwards; }
+    .card.motion.goal .ball::after{ animation: trail .9s ease .1s forwards; }
+
+    @keyframes kick{
+      0%   { transform: translate(0,0) rotate(0deg); }
+      25%  { transform: translate(140px,-38px) rotate(140deg); }
+      55%  { transform: translate(230px,-10px) rotate(280deg); }
+      78%  { transform: translate(280px,10px)  rotate(340deg); }
+      100% { transform: translate(318px,14px)  rotate(380deg); }
+    }
+    @keyframes trail{
+      0%{ opacity:0; }
+      20%{ opacity:.85; }
+      100%{ opacity:0; }
+    }
+
+    footer{
+      max-width:1120px; width:100%;
+      margin:0 auto 28px; padding:0 18px;
+      display:flex; gap:12px; flex-wrap:wrap; align-items:center; color:var(--muted);
+    }
+    .pill{
+      padding:6px 12px; border-radius:999px; background: rgba(255,255,255,.05);
+      border:1px solid var(--glass2);
+    }
+    .err{ color:#ffdede; background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.4); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">
+      <span class="dotbrand"></span>
+      <div>Painel de Monitoramento</div>
+    </div>
+    <div class="badge">Atualização a cada 5s</div>
+  </header>
+
+  <main class="grid">
+    <!-- Temperatura -->
+    <section class="card">
+      <div class="card-header">
+        <div class="label">Temperatura</div>
+        <div class="icon" title="Temperatura">
+          <!-- Termômetro (ouro) -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M14 14.6V6a2 2 0 10-4 0v8.6a4.4 4.4 0 104 0z" stroke="#d4af37" stroke-width="1.7"/>
+            <circle cx="12" cy="18.5" r="3" fill="#d4af37"/>
+          </svg>
+        </div>
+      </div>
+      <div class="value">
+        <span id="temperatura">--</span>
+        <span class="unit">°C</span>
+      </div>
+    </section>
+
+    <!-- Umidade -->
+    <section class="card">
+      <div class="card-header">
+        <div class="label">Umidade</div>
+        <div class="icon" title="Umidade">
+          <!-- Gota (ouro) -->
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3s6 6.2 6 10.1a6 6 0 11-12 0C6 9.2 12 3 12 3z" stroke="#d4af37" stroke-width="1.7" fill="rgba(212,175,55,.18)"/>
+          </svg>
+        </div>
+      </div>
+      <div class="value">
+        <span id="humidade">--</span>
+        <span class="unit">%</span>
+      </div>
+    </section>
+
+    <!-- Movimento / Gol -->
+    <section class="card motion" id="motionCard">
+      <div class="goal-banner">GOOOOL!</div>
+
+      <div class="card-header" style="margin-bottom:6px">
+        <div class="label">Movimento</div>
+        <div class="status">
+          <span id="led" class="led"></span>
+          <span id="motionText">Aguardando…</span>
+        </div>
+      </div>
+
+      <div class="goal-scene">
+        <div class="grass"></div>
+        <div class="goal-line"></div>
+        <div class="ball" id="ball"></div>
+        <div class="net"></div>
+        <div class="posts"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span class="pill" id="last">Última atualização: —</span>
+    <span class="pill err" id="error" style="display:none;">Erro ao buscar dados</span>
+  </footer>
+
+  <script>
+    const ENDPOINT = 'http://localhost:1880/dados';
+
+    const elTemp   = document.getElementById('temperatura');
+    const elUmid   = document.getElementById('humidade');
+    const elLed    = document.getElementById('led');
+    const elMotTxt = document.getElementById('motionText');
+    const elLast   = document.getElementById('last');
+    const elErr    = document.getElementById('error');
+    const motionCard = document.getElementById('motionCard');
+    const ball = document.getElementById('ball');
+
+    function fmtNum(x, dec=1){ const n = Number(x); return Number.isFinite(n) ? n.toFixed(dec) : '--'; }
+
+    function toBoolMotion(v){
+      if (v === true) return true;
+      if (v === false) return false;
+      const s = String(v).toLowerCase().trim();
+      if (['1','true','on','high','yes'].includes(s)) return true;
+      if (['0','false','off','low','no','sem movimento','no motion','none','-'].includes(s)) return false;
+      if (s.includes('detect')) return true;                // 'gol_detectado', 'detected', 'detectado'
+      if (s.includes('moviment') && !s.includes('sem')) return true;
+      const n = Number(v); if (!Number.isNaN(n)) return n !== 0;
+      return false;
+    }
+
+    function setMotion(v){
+      const active = toBoolMotion(v);
+
+      elLed.className = 'led ' + (active ? 'on' : 'off');
+      elMotTxt.textContent = active ? 'Movimento Detectado' : 'Sem Movimento';
+      motionCard.classList.toggle('goal', active);
+
+      // reiniciar animação da bola quando vira true
+      if (active){
+        ball.style.animation = 'none';
+        void ball.offsetWidth; // reflow
+        ball.style.animation = '';
+      }
+    }
+
+    async function atualizarDados(){
+      try{
+        elErr.style.display = 'none';
+        const resp = await fetch(ENDPOINT, { cache:'no-store' });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+
+        if (data.temperatura !== undefined) elTemp.textContent = fmtNum(data.temperatura, 1);
+        if (data.humidade    !== undefined) elUmid.textContent = fmtNum(data.humidade, 0);
+
+        const motionValue = data.motion ?? data.movimento ?? data.pir ?? data.detect ?? data.presenca ?? data.presence;
+        setMotion(motionValue);
+
+        const ts = new Date();
+        elLast.textContent = 'Última atualização: ' +
+          ts.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+      }catch(e){
+        elErr.style.display = 'inline-block';
+        console.error('Falha ao buscar dados:', e);
+      }
+    }
+
+    atualizarDados();
+    setInterval(atualizarDados, 5000);
+  </script>
+</body>
+</html>
